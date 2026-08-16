@@ -1,0 +1,23 @@
+{
+  "name": "Sheila Machado Nail Designer",
+  "short_name": "Sheila Machado",
+  "description": "Agendamento online da Sheila Machado Nail Designer.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffaf8",
+  "theme_color": "#b95f79",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

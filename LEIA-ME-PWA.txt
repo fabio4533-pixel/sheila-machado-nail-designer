@@ -1,0 +1,21 @@
+PWA – Sheila Machado Nail Designer
+
+Envie estes 5 arquivos para a raiz do repositório no GitHub:
+- manifest.webmanifest
+- sw.js
+- install-app.js
+- icon-192.png
+- icon-512.png
+
+Depois abra o index.html no GitHub, clique no lápis e, imediatamente ANTES de:
+</body>
+
+cole esta linha:
+
+<script src="/install-app.js"></script>
+
+Salve em Commit changes.
+
+Depois que a Vercel ficar Ready, abra o site no celular:
+- Android: deve aparecer o botão “📱 Instalar app”.
+- iPhone: toque no botão e siga “Compartilhar > Adicionar à Tela de Início”.
