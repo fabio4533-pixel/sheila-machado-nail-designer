@@ -64,4 +64,4 @@ async function unblockTime(id){await api({action:'unblock',id});loadBlocks()}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function dateBR(v){if(!v)return '';const [y,m,d]=v.split('-');return `${d}/${m}/${y}`}
 PIN=sessionStorage.getItem('nail_pin')||'';if(PIN){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');Promise.all([loadBookings(),loadBlocks()])}
-</script><script src="/whatsapp.js"></script><script src="/delete-booking.js"></script></body></html>
+</script><script src="/whatsapp.js"></script><script src="/delete-booking.js"></script><script src="/faturamento.js"></script></body></html>
