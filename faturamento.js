@@ -334,7 +334,89 @@
             : ""}
         </div>
       `;
+card.style.cursor = "pointer";
 
+card.onclick = function () {
+  const atendimentosDoDia =
+    agendamentos.filter(
+      x =>
+        x.status === "concluido" &&
+        x.appointment_date === dataISO
+    );
+
+  let detalhes =
+    document.getElementById(
+      "detalhesFaturamento"
+    );
+
+  if (!detalhes) {
+    detalhes =
+      document.createElement("div");
+
+    detalhes.id =
+      "detalhesFaturamento";
+
+    detalhes.style.marginTop =
+      "18px";
+
+    calendario.parentElement
+      .appendChild(detalhes);
+  }
+
+  if (!atendimentosDoDia.length) {
+    detalhes.innerHTML = `
+      <div class="small">
+        Nenhum atendimento concluído
+        neste dia.
+      </div>
+    `;
+    return;
+  }
+
+  detalhes.innerHTML = `
+    <h3>
+      Atendimentos de
+      ${String(dia).padStart(2,"0")}/
+      ${String(mes + 1).padStart(2,"0")}/
+      ${ano}
+    </h3>
+
+    ${atendimentosDoDia.map(x => `
+      <div
+        style="
+          background:#fff;
+          border:1px solid #eadde1;
+          border-radius:14px;
+          padding:12px;
+          margin-bottom:8px;
+        "
+      >
+        <b>${x.client_name}</b>
+
+        <div class="small">
+          ${x.service}
+        </div>
+
+        <div class="small">
+          Horário:
+          ${x.appointment_time}
+        </div>
+
+        <div
+          style="
+            margin-top:6px;
+            font-weight:800;
+            color:#5d2638;
+          "
+        >
+          ${dinheiro(
+            getPrice(x.service)
+          )}
+        </div>
+      </div>
+    `).join("")}
+  `;
+};
       calendario.appendChild(card);
     }
   }
