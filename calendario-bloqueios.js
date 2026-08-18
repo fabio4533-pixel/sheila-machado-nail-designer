@@ -1,257 +1,356 @@
 (function () {
-  const ENDPOINT = "https://fzpffyouubmbxfwycywg.supabase.co/functions/v1/nail-bookings";
+  const ENDPOINT =
+    "https://fzpffyouubmbxfwycywg.supabase.co/functions/v1/nail-bookings";
+
   let mesAtual = new Date();
 
   async function api(payload) {
-    const pin = sessionStorage.getItem("nail_pin") || "";
+    const pin =
+      sessionStorage.getItem("nail_pin") || "";
 
     const r = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, pin })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...payload,
+        pin
+      })
     });
 
     const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Erro ao carregar bloqueios.");
+
+    if (!r.ok) {
+      throw new Error(
+        data.error || "Erro ao carregar dados."
+      );
+    }
+
     return data;
   }
 
-  function criarPainel() {
-    const app = document.getElementById("app");
-    if (!app || document.getElementById("calendarioBloqueiosPanel")) return;
+  function esc(v) {
+    return String(v ?? "").replace(
+      /[&<>"']/g,
+      m => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[m])
+    );
+  }
 
-    const painel = document.createElement("div");
-    painel.id = "calendarioBloqueiosPanel";
+  function criarPainel() {
+    const app =
+      document.getElementById("app");
+
+    if (
+      !app ||
+      document.getElementById(
+        "calendarioBloqueiosPanel"
+      )
+    ) return;
+
+    const painel =
+      document.createElement("div");
+
+    painel.id =
+      "calendarioBloqueiosPanel";
+
     painel.className = "panel";
 
     painel.innerHTML = `
       <div class="top">
         <div>
           <h2>Calendário de disponibilidade</h2>
-          <div class="small">Clique em um dia para ver os bloqueios</div>
+
+          <div class="small">
+            Bloqueios e agendamentos
+          </div>
         </div>
-        <button onclick="carregarCalendarioBloqueios()">Atualizar</button>
+
+        <button
+          onclick="carregarCalendarioBloqueios()"
+        >
+          Atualizar
+        </button>
       </div>
 
-      <div class="top" style="margin-top:18px">
-        <button id="bloqMesAnterior">←</button>
-        <h3 id="bloqTituloMes" style="margin:0"></h3>
-        <button id="bloqMesSeguinte">→</button>
+      <div class="legenda-cal">
+        <span>⚪ Livre</span>
+        <span>🟡 Ocupado</span>
+        <span>🟢 Confirmado</span>
+        <span>🔴 Dia bloqueado</span>
       </div>
 
-      <div id="calendarioBloqueios"
-        style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px">
+      <div class="nav-cal">
+        <button id="bloqMesAnterior">
+          ←
+        </button>
+
+        <h3 id="bloqTituloMes"></h3>
+
+        <button id="bloqMesSeguinte">
+          →
+        </button>
       </div>
 
-      <div id="detalhesBloqueios" style="margin-top:18px"></div>
+      <div
+        id="calendarioBloqueios"
+        class="calendario-grid"
+      ></div>
+
+      <div
+        id="detalhesBloqueios"
+        class="detalhes-cal"
+      ></div>
     `;
 
-    app.insertBefore(painel, app.firstChild.nextSibling);
+    app.insertBefore(
+      painel,
+      app.firstChild.nextSibling
+    );
   }
 
-  function montarCalendario(bloqueios) {
-    const calendario = document.getElementById("calendarioBloqueios");
-    const titulo = document.getElementById("bloqTituloMes");
+  function montarCalendario(
+    bloqueios,
+    agendamentos
+  ) {
+    const calendario =
+      document.getElementById(
+        "calendarioBloqueios"
+      );
 
-    const ano = mesAtual.getFullYear();
-    const mes = mesAtual.getMonth();
+    const titulo =
+      document.getElementById(
+        "bloqTituloMes"
+      );
 
-    titulo.textContent = new Date(ano, mes, 1).toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric"
-    });
+    if (!calendario || !titulo) return;
+
+    const ano =
+      mesAtual.getFullYear();
+
+    const mes =
+      mesAtual.getMonth();
+
+    titulo.textContent =
+      new Date(
+        ano,
+        mes,
+        1
+      ).toLocaleDateString(
+        "pt-BR",
+        {
+          month: "long",
+          year: "numeric"
+        }
+      );
 
     calendario.innerHTML = "";
 
-    ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].forEach(dia => {
-      const el = document.createElement("div");
-      el.style.fontWeight = "800";
-      el.style.fontSize = "12px";
-      el.style.textAlign = "center";
-      el.textContent = dia;
-      calendario.appendChild(el);
+    [
+      "Seg",
+      "Ter",
+      "Qua",
+      "Qui",
+      "Sex",
+      "Sáb",
+      "Dom"
+    ].forEach(nome => {
+
+      const cab =
+        document.createElement("div");
+
+      cab.className =
+        "cal-cabecalho";
+
+      cab.textContent = nome;
+
+      calendario.appendChild(cab);
     });
 
-    let deslocamento = new Date(ano, mes, 1).getDay();
-    deslocamento = deslocamento === 0 ? 6 : deslocamento - 1;
+    let primeiro =
+      new Date(
+        ano,
+        mes,
+        1
+      ).getDay();
 
-    for (let i = 0; i < deslocamento; i++) {
-      calendario.appendChild(document.createElement("div"));
+    primeiro =
+      primeiro === 0
+        ? 6
+        : primeiro - 1;
+
+    for (
+      let i = 0;
+      i < primeiro;
+      i++
+    ) {
+      const vazio =
+        document.createElement("div");
+
+      vazio.className =
+        "cal-vazio";
+
+      calendario.appendChild(vazio);
     }
 
-    const totalDias = new Date(ano, mes + 1, 0).getDate();
+    const totalDias =
+      new Date(
+        ano,
+        mes + 1,
+        0
+      ).getDate();
 
-    for (let dia = 1; dia <= totalDias; dia++) {
+    for (
+      let dia = 1;
+      dia <= totalDias;
+      dia++
+    ) {
       const dataISO =
-        `${ano}-${String(mes + 1).padStart(2,"0")}-${String(dia).padStart(2,"0")}`;
+        `${ano}-` +
+        String(mes + 1)
+          .padStart(2, "0") +
+        "-" +
+        String(dia)
+          .padStart(2, "0");
 
-      const bloqueiosDia = bloqueios.filter(x => x.block_date === dataISO);
-      const diaInteiro = bloqueiosDia.some(x => x.full_day);
-      const horarios = bloqueiosDia.filter(x => !x.full_day);
+      const bloqueiosDia =
+        bloqueios.filter(
+          x =>
+            x.block_date ===
+            dataISO
+        );
 
-      const card = document.createElement("div");
-      card.style.border = "1px solid #eadde1";
-      card.style.borderRadius = "14px";
-      card.style.padding = "10px";
-      card.style.minHeight = "82px";
-      card.style.cursor = "pointer";
-      card.style.background = diaInteiro ? "#f7dfe6" : horarios.length ? "#fff7f0" : "#fff";
+      const agendaDia =
+        agendamentos.filter(
+          x =>
+            x.appointment_date ===
+            dataISO
+        );
 
-      const resumo = diaInteiro
-        ? "Dia bloqueado"
-        : horarios.length
-        ? `${horarios.length} horário(s) bloqueado(s)`
-        : "Livre";
+      const diaInteiro =
+        bloqueiosDia.some(
+          x => x.full_day
+        );
+
+      const horariosBloqueados =
+        bloqueiosDia.filter(
+          x => !x.full_day
+        );
+
+      const confirmados =
+        agendaDia.filter(
+          x =>
+            x.status ===
+            "confirmado"
+        );
+
+      const pendentes =
+        agendaDia.filter(
+          x =>
+            x.status ===
+            "pendente"
+        );
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "cal-dia";
+
+      let resumo = "Livre";
+
+      if (diaInteiro) {
+        card.classList.add(
+          "cal-bloqueado"
+        );
+
+        resumo =
+          "Dia bloqueado";
+
+      } else if (
+        confirmados.length
+      ) {
+        card.classList.add(
+          "cal-confirmado"
+        );
+
+        resumo =
+          confirmados.length === 1
+            ? "1 confirmado"
+            : `${confirmados.length} confirmados`;
+
+      } else if (
+        pendentes.length ||
+        horariosBloqueados.length
+      ) {
+        card.classList.add(
+          "cal-ocupado"
+        );
+
+        const qtd =
+          pendentes.length +
+          horariosBloqueados.length;
+
+        resumo =
+          qtd === 1
+            ? "1 ocupado"
+            : `${qtd} ocupados`;
+      }
 
       card.innerHTML = `
-        <div style="font-weight:800;color:#5d2638">${dia}</div>
-        <div style="font-size:11px;margin-top:8px;color:#7d6b71">${resumo}</div>
+        <b>${dia}</b>
+
+        <span>
+          ${resumo}
+        </span>
       `;
 
-      card.onclick = () => mostrarDetalhes(dataISO, bloqueiosDia);
-      calendario.appendChild(card);
+      card.onclick = () => {
+        mostrarDetalhes(
+          dataISO,
+          bloqueiosDia,
+          agendaDia
+        );
+      };
+
+      calendario.appendChild(
+        card
+      );
     }
   }
 
-  function mostrarDetalhes(dataISO, bloqueios) {
-    const detalhes = document.getElementById("detalhesBloqueios");
-    const [ano, mes, dia] = dataISO.split("-");
+  function mostrarDetalhes(
+    dataISO,
+    bloqueios,
+    agenda
+  ) {
+    const detalhes =
+      document.getElementById(
+        "detalhesBloqueios"
+      );
 
-    if (!bloqueios.length) {
-      detalhes.innerHTML = `<h3>${dia}/${mes}/${ano}</h3><div class="small">Nenhum bloqueio neste dia.</div>`;
-      return;
-    }
+    const [
+      ano,
+      mes,
+      dia
+    ] = dataISO.split("-");
 
-    detalhes.innerHTML = `
-      <h3>Bloqueios de ${dia}/${mes}/${ano}</h3>
-      ${bloqueios.map(x => `
-        <div style="background:#fff;border:1px solid #eadde1;border-radius:14px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <b>${x.full_day ? "Dia inteiro" : x.block_time}</b>
-            <div class="small">${x.full_day ? "Folga / dia bloqueado" : "Horário indisponível"}</div>
-          </div>
-          <button class="danger" onclick="desbloquearCalendario(${x.id})">Desbloquear</button>
-        </div>
-      `).join("")}
+    let html = `
+      <h3>
+        Agenda de
+        ${dia}/${mes}/${ano}
+      </h3>
     `;
-  }
 
-  async function desbloquear(id) {
-    if (!confirm("Deseja desbloquear?")) return;
+    const itens = [];
 
-    await api({ action: "unblock", id });
-    await carregarCalendarioBloqueios();
+    bloqueios.forEach(x => {
 
-    if (typeof loadBlocks === "function") loadBlocks();
-  }
-
-  async function carregarCalendarioBloqueios() {
-    criarPainel();
-
-    const data = await api({ action: "list_blocks" });
-    const bloqueios = data.blocks || [];
-
-    montarCalendario(bloqueios);
-
-    document.getElementById("bloqMesAnterior").onclick = () => {
-      mesAtual = new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1);
-      montarCalendario(bloqueios);
-    };
-
-    document.getElementById("bloqMesSeguinte").onclick = () => {
-      mesAtual = new Date(mesAtual.getFullYear(), mesAtual.getMonth() + 1, 1);
-      montarCalendario(bloqueios);
-    };
-  }
-
-  window.carregarCalendarioBloqueios = carregarCalendarioBloqueios;
-  window.desbloquearCalendario = desbloquear;
-
-  function iniciar() {
-    criarPainel();
-
-    if (sessionStorage.getItem("nail_pin")) {
-      setTimeout(carregarCalendarioBloqueios, 400);
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", iniciar);
-  } else {
-    iniciar();
-  }
-})();const estiloCalendario = document.createElement("style");
-
-estiloCalendario.textContent = `
-  #calendarioBloqueiosPanel {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  #calendarioBloqueios {
-    width: 100%;
-    box-sizing: border-box;
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-  }
-
-  #calendarioBloqueios > div {
-    box-sizing: border-box;
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-
-  #bloqTituloMes {
-    text-align: center;
-    flex: 1;
-    text-transform: lowercase;
-  }
-
-  #detalhesBloqueios {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  @media (max-width: 600px) {
-    #calendarioBloqueiosPanel {
-      padding: 18px 12px !important;
-    }
-
-    #calendarioBloqueios {
-      gap: 4px !important;
-    }
-
-    #calendarioBloqueios > div {
-      padding: 7px 3px !important;
-      min-height: 68px !important;
-      border-radius: 10px !important;
-      font-size: 12px !important;
-    }
-
-    #calendarioBloqueios > div:nth-child(-n+7) {
-      min-height: auto !important;
-      padding: 4px 0 !important;
-      font-size: 10px !important;
-    }
-
-    #calendarioBloqueiosPanel .top {
-      gap: 8px;
-    }
-
-    #bloqTituloMes {
-      font-size: 18px;
-    }
-
-    #detalhesBloqueios > div {
-      gap: 8px !important;
-      flex-wrap: wrap;
-    }
-
-    #detalhesBloqueios button {
-      width: 100%;
-    }
-  }
-`;
-
-document.head.appendChild(estiloCalendario);
+      itens.push(`
+        <div class="det
