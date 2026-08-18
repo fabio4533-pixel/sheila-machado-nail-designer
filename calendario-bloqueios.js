@@ -180,4 +180,78 @@
   } else {
     iniciar();
   }
-})();
+})();const estiloCalendario = document.createElement("style");
+
+estiloCalendario.textContent = `
+  #calendarioBloqueiosPanel {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  #calendarioBloqueios {
+    width: 100%;
+    box-sizing: border-box;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  #calendarioBloqueios > div {
+    box-sizing: border-box;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  #bloqTituloMes {
+    text-align: center;
+    flex: 1;
+    text-transform: lowercase;
+  }
+
+  #detalhesBloqueios {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 600px) {
+    #calendarioBloqueiosPanel {
+      padding: 18px 12px !important;
+    }
+
+    #calendarioBloqueios {
+      gap: 4px !important;
+    }
+
+    #calendarioBloqueios > div {
+      padding: 7px 3px !important;
+      min-height: 68px !important;
+      border-radius: 10px !important;
+      font-size: 12px !important;
+    }
+
+    #calendarioBloqueios > div:nth-child(-n+7) {
+      min-height: auto !important;
+      padding: 4px 0 !important;
+      font-size: 10px !important;
+    }
+
+    #calendarioBloqueiosPanel .top {
+      gap: 8px;
+    }
+
+    #bloqTituloMes {
+      font-size: 18px;
+    }
+
+    #detalhesBloqueios > div {
+      gap: 8px !important;
+      flex-wrap: wrap;
+    }
+
+    #detalhesBloqueios button {
+      width: 100%;
+    }
+  }
+`;
+
+document.head.appendChild(estiloCalendario);
